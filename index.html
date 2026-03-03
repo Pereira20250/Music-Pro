@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#000000">
+<title>Matheus Music Pro</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+body{background:#111;color:#fff}
+
+/* NAVBAR */
+nav{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:15px 30px;
+background:linear-gradient(to bottom,#000,transparent);
+position:fixed;
+width:100%;
+z-index:10
+}
+
+.logo{
+display:flex;
+align-items:center;
+gap:10px
+}
+
+.logo img{
+width:45px;
+height:45px;
+border-radius:50%;
+object-fit:cover;
+border:2px solid #e50914
+}
+
+nav button{
+background:#e50914;
+border:none;
+color:#fff;
+padding:8px 15px;
+border-radius:5px;
+cursor:pointer
+}
+
+/* HERO */
+.hero{
+height:90vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
+padding-left:60px;
+background:linear-gradient(to right,#000,transparent),
+url("https://images.unsplash.com/photo-1511379938547-c1f69419868d") center/cover;
+}
+
+.hero h1{font-size:50px}
+.hero p{margin-top:10px;color:#ccc}
+.hero button{margin-top:20px;width:200px}
+
+/* SECTION */
+.section{padding:40px}
+.courses{
+display:flex;
+overflow-x:auto;
+gap:20px
+}
+
+.card{
+min-width:260px;
+background:#1c1c1c;
+padding:15px;
+border-radius:10px;
+transition:.3s
+}
+
+.card:hover{transform:scale(1.05)}
+
+video{width:100%;border-radius:8px}
+
+/* MODAL */
+.modal{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.8);
+display:none;
+justify-content:center;
+align-items:center
+}
+
+.modal-content{
+background:#1c1c1c;
+padding:25px;
+border-radius:10px;
+width:300px
+}
+
+input,textarea,select{
+width:100%;
+padding:8px;
+margin:8px 0;
+border-radius:5px;
+border:none
+}
+
+/* ADMIN */
+.admin{
+background:#000;
+padding:30px;
+margin-top:40px
+}
+
+.stat{
+background:#1c1c1c;
+padding:15px;
+border-radius:8px;
+margin-bottom:10px
+}
+
+/* RESPONSIVO */
+@media(max-width:768px){
+.hero{padding-left:20px}
+.hero h1{font-size:30px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+<div class="logo">
+<!-- 🔥 COLOQUE SUA IMAGEM AQUI -->
+<img src="image.png">
+<h2>Matheus Music</h2>
+</div>
+<div>
+<button onclick="openAuth()">Login</button>
+<button onclick="openUpload()">Enviar Aula</button>
+</div>
+</nav>
+
+<div class="hero">
+<h1>Plataforma Profissional de Música</h1>
+<p>Curso de Teclado & Violão | SaaS Multi-Professor</p>
+<button onclick="subscribe()">Assinar Premium</button>
+</div>
+
+<div class="section">
+<h2>Aulas Disponíveis</h2>
+<div class="courses" id="courses"></div>
+</div>
+
+<div class="section admin">
+<h2>Dashboard Administrativo</h2>
+<div class="stat">Usuários: <span id="usersCount"></span></div>
+<div class="stat">Cursos: <span id="coursesCount"></span></div>
+<div class="stat">Premium: <span id="premiumCount"></span></div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="modal" id="authModal">
+<div class="modal-content">
+<h3>Login / Cadastro</h3>
+<input type="text" id="name" placeholder="Nome">
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Senha">
+<select id="role">
+<option value="student">Aluno</option>
+<option value="teacher">Professor</option>
+</select>
+<button onclick="register()">Cadastrar</button>
+<button onclick="login()">Entrar</button>
+</div>
+</div>
+
+<!-- UPLOAD MODAL -->
+<div class="modal" id="uploadModal">
+<div class="modal-content">
+<h3>Nova Aula</h3>
+<input type="text" id="title" placeholder="Título">
+<textarea id="description" placeholder="Descrição"></textarea>
+<input type="file" id="videoFile" accept="video/*" capture>
+<button onclick="uploadCourse()">Publicar</button>
+</div>
+</div>
+
+<script>
+
+/* DATABASE LOCAL (SaaS SIMULADO) */
+let users=JSON.parse(localStorage.getItem("users"))||[];
+let courses=JSON.parse(localStorage.getItem("courses"))||[];
+let currentUser=JSON.parse(localStorage.getItem("currentUser"));
+
+function save(){
+localStorage.setItem("users",JSON.stringify(users));
+localStorage.setItem("courses",JSON.stringify(courses));
+}
+
+/* AUTH */
+function openAuth(){authModal.style.display="flex"}
+function openUpload(){uploadModal.style.display="flex"}
+
+function register(){
+users.push({
+name:name.value,
+email:email.value,
+password:password.value,
+role:role.value,
+premium:false
+});
+save();
+alert("Cadastrado!");
+}
+
+function login(){
+let user=users.find(u=>u.email===email.value&&u.password===password.value);
+if(!user)return alert("Erro login");
+localStorage.setItem("currentUser",JSON.stringify(user));
+alert("Logado!");
+location.reload();
+}
+
+/* UPLOAD */
+function uploadCourse(){
+if(!currentUser)return alert("Faça login");
+if(currentUser.role!=="teacher")return alert("Apenas professores");
+
+let file=videoFile.files[0];
+let reader=new FileReader();
+reader.onload=function(){
+courses.push({
+title:title.value,
+description:description.value,
+video:reader.result,
+teacher:currentUser.name
+});
+save();
+alert("Publicado!");
+location.reload();
+}
+reader.readAsDataURL(file);
+}
+
+/* LOAD COURSES */
+function loadCourses(){
+courses.forEach(c=>{
+coursesDiv.innerHTML+=`
+<div class="card">
+<h3>${c.title}</h3>
+<small>Professor: ${c.teacher}</small>
+<video controls src="${c.video}"></video>
+</div>
+`
+})
+}
+let coursesDiv=document.getElementById("courses");
+loadCourses();
+
+/* DASHBOARD */
+function loadAdmin(){
+usersCount.innerText=users.length;
+coursesCount.innerText=courses.length;
+premiumCount.innerText=users.filter(u=>u.premium).length;
+}
+loadAdmin();
+
+/* STRIPE SIMULADO */
+function subscribe(){
+if(!currentUser)return alert("Faça login");
+alert("Integre aqui com Stripe real no backend.");
+currentUser.premium=true;
+localStorage.setItem("currentUser",JSON.stringify(currentUser));
+alert("Premium ativado (simulado)");
+location.reload();
+}
+
+/* PWA SIMPLES */
+if("serviceWorker" in navigator){
+let swCode=`
+self.addEventListener('install',e=>{
+e.waitUntil(
+caches.open('music-cache').then(cache=>{
+return cache.addAll(['./'])
+})
+)
+})
+self.addEventListener('fetch',e=>{
+e.respondWith(
+caches.match(e.request).then(r=>r||fetch(e.request))
+)
+})
+`;
+let blob=new Blob([swCode],{type:"text/javascript"});
+let swURL=URL.createObjectURL(blob);
+navigator.serviceWorker.register(swURL);
+}
+
+</script>
+
+</body>
+</html>
